@@ -56,9 +56,10 @@ jobs:
         if: env.STOP_WORKFLOW == 'false'
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
-        run: >
-          gh release create ${{ env.VERSION }}
-            --title "Release ${{ env.VERSION }}"
-            --draft
-            ./publish/DLL-Release/LCAmmoCheck.dll
+        run: |
+          gh release create ${{ env.VERSION }} \
+            --title "Release ${{ env.VERSION }}" \
+            --notes "" \
+            --draft \
+            ./publish/DLL-Release/LCAmmoCheck.dll \
             ./publish/Thunderstore-Release/LCAmmoCheck-${{ env.VERSION }}.zip
