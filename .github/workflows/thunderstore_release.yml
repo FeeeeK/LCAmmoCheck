@@ -32,8 +32,8 @@ jobs:
           token: ${{ secrets.THUNDERSTORE_TOKEN }}
           name: ${{ env.NAME }}
           version: ${{ env.VERSION }}
-          community: Lethal Company
-          repo: lethal-company.thunderstore.io
+          community: lethal-company
+          repo: thunderstore.io
           file: ./publish/LCAmmoCheck-${{ env.VERSION }}.zip
           categories: |
             clientside
