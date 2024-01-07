@@ -25,8 +25,8 @@ jobs:
       - name: Build and Publish
         run: |
           dotnet restore
-          dotnet build LCAmmoCheck/LCAmmoCheck.csproj -c Release --output ./publish
-          dotnet publish LCAmmoCheck/LCAmmoCheck.csproj -c Release --output ./publish
+          dotnet build LCAmmoCheck/LCAmmoCheck.csproj -c Release --output ./publish --no-restore
+          dotnet publish LCAmmoCheck/LCAmmoCheck.csproj -c Release --output ./publish --no-restore
 
       - name: Upload artifact (dll)
         uses: actions/upload-artifact@v4

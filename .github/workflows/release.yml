@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Check if version changed
         if: github.event.workflow_run.event != 'workflow_dispatch'
@@ -33,7 +35,7 @@ jobs:
             echo "STOP_WORKFLOW=false" >> $GITHUB_ENV
             echo "VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" LCAmmoCheck/LCAmmoCheck.csproj)" >> $GITHUB_ENV
           else
-            echo "Version did not change\n"
+            echo "Version did not change"
             echo "STOP_WORKFLOW=true" >> $GITHUB_ENV
           fi
 
