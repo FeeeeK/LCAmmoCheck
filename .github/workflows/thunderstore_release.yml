@@ -10,10 +10,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: Thunderstore-Release
-          path: ./publish
+      - name: Download artifacts
+        run: |
+          gh run download --name Thunderstore-Release --dir ./publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get name, description and version
         run: |
