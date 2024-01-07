@@ -54,12 +54,10 @@ jobs:
 
       - name: Create Release
         if: env.STOP_WORKFLOW == 'false'
-        uses: marvinpinto/action-automatic-releases@v1.2.1
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: false
-          draft: true
-          automatic_release_tag: ${{ env.VERSION }}
-          files: |
+        run: >
+          gh release create ${{ env.VERSION }}
+            --title ${{ env.VERSION }}
+            --notes "Release ${{ env.VERSION }}"
+            --draft
             ./publish/DLL-Release/LCAmmoCheck.dll
             ./publish/Thunderstore-Release/LCAmmoCheck-${{ env.VERSION }}.zip
