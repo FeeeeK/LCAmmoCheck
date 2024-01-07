@@ -1,0 +1,13 @@
+﻿<Project Sdk="LethalCompany.Plugin.Sdk/1.0.2">
+
+    <PropertyGroup>
+        <Title>LCAmmoCheck</Title>
+        <Description>Open shotgun to check ammo</Description>
+        <PackageId>LCAmmoCheck</PackageId>
+        <PackageReadMeFile>..\README.md</PackageReadMeFile>
+        <PluginId>me.axd1x8a.</PluginId>
+        <Version>1.0.0</Version>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+</Project>
