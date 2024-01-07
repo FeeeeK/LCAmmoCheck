@@ -59,7 +59,7 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           draft: true
-          automatic_releases_tag: ${{ env.VERSION }}
+          automatic_release_tag: ${{ env.VERSION }}
           files: |
             ./publish/DLL-Release/LCAmmoCheck.dll
             ./publish/Thunderstore-Release/LCAmmoCheck-${{ env.VERSION }}.zip
