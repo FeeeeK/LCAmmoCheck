@@ -1,0 +1,38 @@
+name: Publish Release to Thunderstore
+on:
+  release:
+    types: [released]
+
+jobs:
+  publish_to_thunderstore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: Thunderstore-Release
+          path: ./publish
+
+      - name: Get name and description
+        run: |
+          NAME=$(grep -oPm1 "(?<=<PackageId>)[^<]+" LCAmmoCheck/LCAmmoCheck.csproj)
+          DESCRIPTION=$(grep -oPm1 "(?<=<Description>)[^<]+" LCAmmoCheck/LCAmmoCheck.csproj)
+          echo "NAME=$NAME" >> $GITHUB_ENV
+          echo "DESCRIPTION=$DESCRIPTION" >> $GITHUB_ENV
+
+      - uses: GreenTF/upload-thunderstore-package@v4.2
+        with:
+          namespace: axd1x8a
+          description: ${{ env.DESCRIPTION }}
+          token: ${{ secrets.THUNDERSTORE_TOKEN }}
+          name: ${{ env.NAME }}
+          version: ${{ github.event.release.tag_name }}
+          community: Lethal Company
+          repo: lethal-company.thunderstore.io
+          file: ./publish/LCAmmoCheck-${{ github.event.release.tag_name }}.zip
+          categories: |
+            clientside
+            bepinex
+            misc
+            mods

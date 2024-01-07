@@ -1,0 +1,56 @@
+name: Publish Release
+
+on:
+  workflow_run:
+    workflows: ["Build and Upload Artifacts"]
+    types:
+      - completed
+
+jobs:
+  download_and_release:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check if version changed
+        id: check_version
+        run: |
+          git fetch origin ${{ github.event.before }}..${{ github.sha }}
+          if git diff --quiet ${{ github.event.before }}..${{ github.sha }} -- LCAmmoCheck.csproj; then
+            echo "Version did not change"
+            echo "STOP_WORKFLOW=true" >> $GITHUB_ENV
+          else
+            echo "Version changed"
+            echo "STOP_WORKFLOW=false" >> $GITHUB_ENV
+            echo "VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" LCAmmoCheck/LCAmmoCheck.csproj)" >> $GITHUB_ENV
+          fi
+
+      - name: Stop if version did not change
+        uses: softprops/turnstyle@v1
+        with:
+          continue-after-seconds: 0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: env.STOP_WORKFLOW == 'true'
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: |
+            DLL-Release
+            Thunderstore-Release
+          path: ./publish
+
+      - name: Create Release
+        uses: marvinpinto/action-automatic-releases@v1.2.1
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          draft: true
+          automatic_releases_tag: ${{ env.VERSION }}
+          files: |
+            ./publish/LCAmmoCheck.dll
+            ./publish/LCAmmoCheck-*.zip
