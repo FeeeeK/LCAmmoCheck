@@ -15,21 +15,8 @@ sealed class ShotgunItemPatch
     static IEnumerator CheckAmmoAnimation(ShotgunItem s)
     {
         s.isReloading = true;
-        switch (s.shellsLoaded)
-        {
-            case 0:
-                s.shotgunShellLeft.enabled = false;
-                s.shotgunShellRight.enabled = false;
-                break;
-            case 1:
-                s.shotgunShellLeft.enabled = true;
-                s.shotgunShellRight.enabled = false;
-                break;
-            default:
-                s.shotgunShellLeft.enabled = true;
-                s.shotgunShellRight.enabled = true;
-                break;
-        }
+        s.shotgunShellLeft.enabled = s.shellsLoaded > 0;
+        s.shotgunShellRight.enabled = s.shellsLoaded > 1;
         // Start hand animation
         s.playerHeldBy.playerBodyAnimator.SetBool("ReloadShotgun", value: true);
         yield return new WaitForSeconds(0.3f);
