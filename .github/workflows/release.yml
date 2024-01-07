@@ -47,17 +47,18 @@ jobs:
 
       - name: Download artifacts
         if: env.STOP_WORKFLOW == 'false'
-        run: |
-          gh run download --name DLL-Release --name Thunderstore-Release --dir ./publish
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh run download --name DLL-Release --name Thunderstore-Release --dir ./publish
 
       - name: Create Release
         if: env.STOP_WORKFLOW == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: >
           gh release create ${{ env.VERSION }}
-            --title ${{ env.VERSION }}
-            --notes "Release ${{ env.VERSION }}"
+            --title "Release ${{ env.VERSION }}"
             --draft
             ./publish/DLL-Release/LCAmmoCheck.dll
             ./publish/Thunderstore-Release/LCAmmoCheck-${{ env.VERSION }}.zip
