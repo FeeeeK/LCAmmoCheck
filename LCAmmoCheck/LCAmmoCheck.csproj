@@ -5,8 +5,9 @@
         <Description>Open shotgun to check ammo</Description>
         <PackageId>LCAmmoCheck</PackageId>
         <PackageReadMeFile>..\README.md</PackageReadMeFile>
-        <PluginId>me.axd1x8a.</PluginId>
+        <PluginId>me.axd1x8a.lcammocheck</PluginId>
         <Version>1.0.0</Version>
+        <ThunderWebsiteUrl>https://github.com/feeeek/LCAmmoCheck</ThunderWebsiteUrl>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
