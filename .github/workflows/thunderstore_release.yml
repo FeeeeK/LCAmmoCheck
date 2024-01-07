@@ -2,6 +2,7 @@ name: Publish Release to Thunderstore
 on:
   release:
     types: [released]
+  workflow_dispatch:
 
 jobs:
   publish_to_thunderstore:
@@ -14,12 +15,14 @@ jobs:
           name: Thunderstore-Release
           path: ./publish
 
-      - name: Get name and description
+      - name: Get name, description and version
         run: |
           NAME=$(grep -oPm1 "(?<=<PackageId>)[^<]+" LCAmmoCheck/LCAmmoCheck.csproj)
           DESCRIPTION=$(grep -oPm1 "(?<=<Description>)[^<]+" LCAmmoCheck/LCAmmoCheck.csproj)
+          VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" LCAmmoCheck/LCAmmoCheck.csproj)
           echo "NAME=$NAME" >> $GITHUB_ENV
           echo "DESCRIPTION=$DESCRIPTION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - uses: GreenTF/upload-thunderstore-package@v4.2
         with:
@@ -27,10 +30,10 @@ jobs:
           description: ${{ env.DESCRIPTION }}
           token: ${{ secrets.THUNDERSTORE_TOKEN }}
           name: ${{ env.NAME }}
-          version: ${{ github.event.release.tag_name }}
+          version: ${{ env.VERSION }}
           community: Lethal Company
           repo: lethal-company.thunderstore.io
-          file: ./publish/LCAmmoCheck-${{ github.event.release.tag_name }}.zip
+          file: ./publish/LCAmmoCheck-${{ env.VERSION }}.zip
           categories: |
             clientside
             bepinex
