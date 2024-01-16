@@ -1,72 +1,72 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using HarmonyLib;
 using UnityEngine;
-using GameNetcodeStuff;
 
 namespace LCAmmoCheck.Patches;
 
 [HarmonyPatch(typeof(ShotgunItem))]
 sealed class ShotgunItemPatch
 {
+    private static readonly Dictionary<int, AnimationClip> originalClips = [];
+    static AnimatorOverrideController OverrideController(Animator animator)
+    {
+        if (animator.runtimeAnimatorController is AnimatorOverrideController controller)
+        {
+            return controller;
+        }
+        AnimatorOverrideController overrideController = new(animator.runtimeAnimatorController);
+        animator.runtimeAnimatorController = overrideController;
+        return overrideController;
+    }
     static IEnumerator CheckAmmoAnimation(ShotgunItem s)
     {
+        AnimatorOverrideController overrideController = OverrideController(s.playerHeldBy.playerBodyAnimator);
+        int playerAnimatorId = s.playerHeldBy.playerBodyAnimator.GetInstanceID();
+        originalClips[playerAnimatorId] = overrideController["ShotgunReloadOneShell"];
+        overrideController["ShotgunReloadOneShell"] = LCAmmoCheckPlugin.ShotgunInspectClip!;
         s.isReloading = true;
         s.shotgunShellLeft.enabled = s.shellsLoaded > 0;
         s.shotgunShellRight.enabled = s.shellsLoaded > 1;
-        // Start hand animation
         s.playerHeldBy.playerBodyAnimator.SetBool("ReloadShotgun", value: true);
+
         yield return new WaitForSeconds(0.3f);
-        // Start gun animation and sound
-        s.gunAudio.clip = s.gunReloadSFX;
-        s.gunAudio.Play();
+
+        s.gunAudio.PlayOneShot(LCAmmoCheckPlugin.ShotgunInspectSFX!);
         s.gunAnimator.SetBool("Reloading", value: true);
-        yield return new WaitForSeconds(0.45f);
-        // Stop gun reload sound at time of shell insertion
-        s.gunAudio.Stop();
-        // Stop hand animation at time of shell insertion
-        s.playerHeldBy.playerBodyAnimator.speed = 0.2f;
-        // Start gun reload sound at time after shell insertion
-        s.gunAudio.time = 0.70f;
-        s.gunAudio.Play();
 
         yield return new WaitForSeconds(0.95f);
-        s.playerHeldBy.playerBodyAnimator.speed = 0.6f;
-        s.playerHeldBy.playerBodyAnimator.SetBool("ReloadShotgun", value: false);
+        yield return new WaitForSeconds(0.95f);
+        yield return new WaitForSeconds(0.15f);
         s.gunAnimator.SetBool("Reloading", value: false);
-
-        yield return new WaitForSeconds(0.3f);
-        s.gunAudio.time = 0.0f;
-        s.gunAudio.Stop();
-        s.playerHeldBy.playerBodyAnimator.speed = 1.0f;
+        yield return new WaitForSeconds(0.25f);
+        s.playerHeldBy.playerBodyAnimator.SetBool("ReloadShotgun", value: false);
+        yield return new WaitForSeconds(0.25f);
+        originalClips.Remove(playerAnimatorId, out AnimationClip clip);
+        overrideController["ShotgunReloadOneShell"] = clip;
         s.isReloading = false;
-        s.ReloadGunEffectsServerRpc(start: false);
         yield break;
     }
+
+    private static void CleanUp(Animator animator)
+    {
+        if (animator.runtimeAnimatorController is AnimatorOverrideController overrideController)
+        {
+            if (originalClips.Remove(animator.GetInstanceID(), out AnimationClip? clip))
+            {
+                overrideController["ShotgunReloadOneShell"] = clip;
+            }
+        }
+    }
+
 
     [HarmonyPrefix]
     [HarmonyPatch("StopUsingGun")]
     public static bool StopUsingGunPrefix(ShotgunItem __instance)
     {
-        // playerHeldBy is null when the gun is dropped so we use previousPlayerHeldBy
-        PlayerControllerB playerHeldBy = __instance.playerHeldBy ?? __instance.previousPlayerHeldBy;
-        if (playerHeldBy == null)
-        {
-            return true;
-        }
-        if (playerHeldBy.playerBodyAnimator.speed != 1.0f)
-        {
-            playerHeldBy.playerBodyAnimator.speed = 1.0f;
-        }
-        if (__instance.gunAudio.time != 0.0f)
-        {
-            __instance.gunAudio.time = 0.0f;
-        }
+        CleanUp(__instance.playerHeldBy.playerBodyAnimator);
         return true;
     }
+
 
     [HarmonyPrefix]
     [HarmonyPatch("StartReloadGun")]
@@ -81,6 +81,31 @@ sealed class ShotgunItemPatch
             __instance.gunCoroutine = __instance.StartCoroutine(CheckAmmoAnimation(__instance));
             return false;
         }
+        return true;
+    }
+
+    [HarmonyPrefix]
+    [HarmonyPatch("ItemInteractLeftRight")]
+    public static bool ItemInteractLeftRightPrefix(ShotgunItem __instance, bool right)
+    {
+        // right = true -> Interact (E)
+        if (!right)
+        {
+            return true;
+        }
+        if (__instance.playerHeldBy.hit.collider != null && __instance.playerHeldBy.hit.collider.tag == "InteractTrigger")
+        {
+            return false;
+        }
+        return true;
+    }
+
+    [HarmonyPrefix]
+    [HarmonyPatch("Start")]
+    public static bool StartPrefix(ShotgunItem __instance)
+    {
+        string[] toolTips = __instance.itemProperties.toolTips;
+        toolTips[1] = "Reload / Check ammo : [E]";
         return true;
     }
 

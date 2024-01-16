@@ -1,29 +1,45 @@
 ﻿using System.Reflection;
-using BepInEx;
 using BepInEx.Logging;
-using HarmonyLib;
+using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace LCAmmoCheck
 {
     [BepInPlugin(GeneratedPluginInfo.Identifier, GeneratedPluginInfo.Name, GeneratedPluginInfo.Version)]
     public class LCAmmoCheckPlugin : BaseUnityPlugin
     {
-        public static LCAmmoCheckPlugin? Instance { get; private set; }
         private static Harmony? harmony;
+        public static LCAmmoCheckPlugin? Instance { get; private set; }
+        public static AnimationClip? ShotgunInspectClip { get; private set; }
+        public static AudioClip? ShotgunInspectSFX { get; private set; }
 
-#pragma warning disable IDE0051
-        private void Awake()
+        private static void LoadAssetBundle()
+        {
+            Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("LCAmmoCheck.lcammocheck");
+            AssetBundle ACAssetBundle = AssetBundle.LoadFromStream(stream);
+            ShotgunInspectClip = ACAssetBundle.LoadAsset<AnimationClip>("Assets/AnimationClip/ShotgunInspect.anim");
+            Assert.IsNotNull(ShotgunInspectClip);
+            ShotgunInspectSFX = ACAssetBundle.LoadAsset<AudioClip>("Assets/AudioClip/ShotgunInspect.ogg");
+            Assert.IsNotNull(ShotgunInspectSFX);
+            ShotgunInspectSFX?.LoadAudioData();
+            ACAssetBundle.Unload(false);
+        }
+
+
+        public void Awake()
         {
             Instance = this;
+            LoadAssetBundle();
             harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), GeneratedPluginInfo.Identifier);
             Logger.Log(LogLevel.Message, "LCAmmoCheck loaded!");
         }
 
-        static private void OnDestroy()
+        public static void OnDestroy()
         {
-            Instance = null;
             harmony?.UnpatchSelf();
+            Instance = null;
+            harmony = null;
+            Debug.Log("LCAmmoCheck unloaded!");
         }
-#pragma warning restore IDE0051
     }
 }

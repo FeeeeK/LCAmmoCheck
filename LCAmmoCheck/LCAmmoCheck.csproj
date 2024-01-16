@@ -7,9 +7,13 @@
         <PackageReadMeFile>..\README.md</PackageReadMeFile>
         <PluginChangelogFile>..\CHANGELOG.md</PluginChangelogFile>
         <PluginId>me.axd1x8a.lcammocheck</PluginId>
-        <Version>1.0.0</Version>
+        <Version>1.1.0</Version>
         <ThunderWebsiteUrl>https://github.com/feeeek/LCAmmoCheck</ThunderWebsiteUrl>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="lcammocheck" />
+    </ItemGroup>
 
 </Project>
