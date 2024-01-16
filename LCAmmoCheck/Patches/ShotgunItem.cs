@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Reflection.Emit;
+using GameNetcodeStuff;
 using UnityEngine;
 
 namespace LCAmmoCheck.Patches;
@@ -63,7 +64,8 @@ sealed class ShotgunItemPatch
     [HarmonyPatch("StopUsingGun")]
     public static bool StopUsingGunPrefix(ShotgunItem __instance)
     {
-        CleanUp(__instance.playerHeldBy.playerBodyAnimator);
+        PlayerControllerB playerHeldBy = __instance.playerHeldBy ?? __instance.previousPlayerHeldBy;
+        CleanUp(playerHeldBy.playerBodyAnimator);
         return true;
     }
 
