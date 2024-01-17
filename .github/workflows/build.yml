@@ -2,8 +2,6 @@ name: Build and Upload Artifacts
 
 on:
   push:
-    branches:
-      - master
 
 jobs:
   build:
