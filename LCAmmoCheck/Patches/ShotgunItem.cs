@@ -9,7 +9,8 @@ namespace LCAmmoCheck.Patches;
 sealed class ShotgunItemPatch
 {
     private static readonly Dictionary<int, AnimationClip> originalClips = [];
-    static AnimatorOverrideController OverrideController(Animator animator)
+
+    static AnimatorOverrideController GetOrSetOverrideController(Animator animator)
     {
         if (animator.runtimeAnimatorController is AnimatorOverrideController controller)
         {
@@ -21,13 +22,15 @@ sealed class ShotgunItemPatch
     }
     static IEnumerator CheckAmmoAnimation(ShotgunItem s)
     {
-        AnimatorOverrideController overrideController = OverrideController(s.playerHeldBy.playerBodyAnimator);
-        int playerAnimatorId = s.playerHeldBy.playerBodyAnimator.GetInstanceID();
-        originalClips[playerAnimatorId] = overrideController["ShotgunReloadOneShell"];
-        overrideController["ShotgunReloadOneShell"] = LCAmmoCheckPlugin.ShotgunInspectClip!;
         s.isReloading = true;
         s.shotgunShellLeft.enabled = s.shellsLoaded > 0;
         s.shotgunShellRight.enabled = s.shellsLoaded > 1;
+
+        AnimatorOverrideController overrideController = GetOrSetOverrideController(s.playerHeldBy.playerBodyAnimator);
+        int playerAnimatorId = s.playerHeldBy.playerBodyAnimator.GetInstanceID();
+        originalClips[playerAnimatorId] = overrideController["ShotgunReloadOneShell"];
+        overrideController["ShotgunReloadOneShell"] = LCAmmoCheckPlugin.ShotgunInspectClip!;
+
         s.playerHeldBy.playerBodyAnimator.SetBool("ReloadShotgun", value: true);
 
         yield return new WaitForSeconds(0.3f);
@@ -35,9 +38,7 @@ sealed class ShotgunItemPatch
         s.gunAudio.PlayOneShot(LCAmmoCheckPlugin.ShotgunInspectSFX!);
         s.gunAnimator.SetBool("Reloading", value: true);
 
-        yield return new WaitForSeconds(0.95f);
-        yield return new WaitForSeconds(0.95f);
-        yield return new WaitForSeconds(0.15f);
+        yield return new WaitForSeconds(2.05f);
         s.gunAnimator.SetBool("Reloading", value: false);
         yield return new WaitForSeconds(0.25f);
         s.playerHeldBy.playerBodyAnimator.SetBool("ReloadShotgun", value: false);
